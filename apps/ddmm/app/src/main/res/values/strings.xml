@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DroidDMMActivity</string>
+    <string name="button_start_profiler">Start Profiler</string>
+    <string name="button_stop_profiler">Stop Profiler</string>
+    <string name="checkbox_prevent_sleep">Prevent Device Sleep</string>
+</resources>
