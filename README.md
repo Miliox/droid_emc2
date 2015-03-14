@@ -1,2 +1,4 @@
-# droid_emc2
-Droid Energy Monitor Component Collection (E-MC2)
+# Droid Energy Monitor Component Collection (E-MC2)
+
+This is a collection of tools developer by me to measure
+energy consumption in Android platform.
