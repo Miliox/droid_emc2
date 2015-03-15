@@ -16,7 +16,7 @@ import static br.ufpe.emilianofirmino.ddmm.service.DroidDMMService.*;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;;
 
-public class DroidDMMActivity extends Activity
+public class MainActivity extends Activity
 {
     static {
         System.loadLibrary("DDMM");

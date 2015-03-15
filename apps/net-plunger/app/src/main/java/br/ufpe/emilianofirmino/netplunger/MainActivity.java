@@ -15,7 +15,7 @@ import android.widget.Toast;
 
 public class MainActivity extends ActionBarActivity {
     private EditText urlField;
-    private Spinner modeField;
+    private Spinner  modeField;
 
     private NumberPicker hourPicker;
     private NumberPicker minutePicker;
@@ -24,7 +24,7 @@ public class MainActivity extends ActionBarActivity {
     private CheckBox enableRepeat;
     private EditText repeatNumber;
     private EditText packetSepTime;
-    private Button runButton;
+    private Button   runButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,15 +38,15 @@ public class MainActivity extends ActionBarActivity {
                 ArrayAdapter.createFromResource(
                         this, R.array.stress_mode_array, android.R.layout.simple_spinner_item);
 
-        this.urlField = (EditText) findViewById(R.id.input_url);
-        this.modeField = (Spinner) findViewById(R.id.input_test_mode);
-        this.hourPicker = (NumberPicker) findViewById(R.id.input_duration_hour);
-        this.minutePicker = (NumberPicker) findViewById(R.id.input_duration_minute);
-        this.secondPicker = (NumberPicker) findViewById(R.id.input_duration_second);
-        this.enableRepeat = (CheckBox) findViewById(R.id.checkbox_repeat_test);
-        this.repeatNumber = (EditText) findViewById(R.id.input_number_test_repetions);
-        this.packetSepTime = (EditText) findViewById(R.id.input_delay_between_tests);
-        this.runButton = (Button) findViewById(R.id.button_run);
+        this.urlField      = (EditText)     findViewById(R.id.input_url);
+        this.modeField     = (Spinner)      findViewById(R.id.input_test_mode);
+        this.hourPicker    = (NumberPicker) findViewById(R.id.input_duration_hour);
+        this.minutePicker  = (NumberPicker) findViewById(R.id.input_duration_minute);
+        this.secondPicker  = (NumberPicker) findViewById(R.id.input_duration_second);
+        this.enableRepeat  = (CheckBox)     findViewById(R.id.checkbox_repeat_test);
+        this.repeatNumber  = (EditText)     findViewById(R.id.input_number_test_repetions);
+        this.packetSepTime = (EditText)     findViewById(R.id.input_delay_between_tests);
+        this.runButton     = (Button)       findViewById(R.id.button_run);
 
         this.modeField.setAdapter(testOptions);
 
@@ -96,30 +96,27 @@ public class MainActivity extends ActionBarActivity {
                         msg += ",r:" + repeat;
                         msg += ",d:" + delay;
                     }
-                    urlField.setEnabled(false);
-                    modeField.setEnabled(false);
-                    hourPicker.setEnabled(false);
-                    minutePicker.setEnabled(false);
-                    secondPicker.setEnabled(false);
-                    enableRepeat.setEnabled(false);
-                    repeatNumber.setEnabled(false);
-                    packetSepTime.setEnabled(false);
+                    setUiComponentsEnabled(false);
                     runButton.setText(end);
 
                     Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
                 }
                 else if (end.equals(runButton.getText())) {
-                    urlField.setEnabled(true);
-                    modeField.setEnabled(true);
-                    hourPicker.setEnabled(true);
-                    minutePicker.setEnabled(true);
-                    secondPicker.setEnabled(true);
-                    enableRepeat.setEnabled(true);
-                    repeatNumber.setEnabled(true);
-                    packetSepTime.setEnabled(true);
+                    setUiComponentsEnabled(true);
                     runButton.setText(run);
                 }
             }
         });
+    }
+
+    private void setUiComponentsEnabled(boolean enabled) {
+        urlField.setEnabled(enabled);
+        modeField.setEnabled(enabled);
+        hourPicker.setEnabled(enabled);
+        minutePicker.setEnabled(enabled);
+        secondPicker.setEnabled(enabled);
+        enableRepeat.setEnabled(enabled);
+        repeatNumber.setEnabled(enabled);
+        packetSepTime.setEnabled(enabled);
     }
 }
