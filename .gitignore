@@ -57,3 +57,6 @@ proguard/
 
 # Log Files
 *.log
+
+# Erlang
+*.beam
