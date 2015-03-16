@@ -1,9 +1,9 @@
 <resources>
-    <string name="app_name">CpuBurn2</string>
+    <string name="app_name">Cpu Judge</string>
 
-    <string name="app_title">CPU Burn Stress Test for Android</string>
-    <string name="lb_cpu_freq">CPU Frequency</string>
-    <string name="lb_cpu_num">CPU Number</string>
-    <string name="bt_cpu_cfg">Configure CPUs</string>
+    <string name="app_title">CPU Judge</string>
+    <string name="lb_cpu_freq">Frequency:</string>
+    <string name="lb_cpu_num">Core Number:</string>
+    <string name="bt_cpu_cfg">Judgment</string>
     <string name="action_settings">Settings</string>
 </resources>
