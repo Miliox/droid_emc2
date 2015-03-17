@@ -24,10 +24,33 @@ if (length(args) == 1) {
 
     ## Energy Consumption Graph
     plot(battdata$ElapsedTime, battdata$MilliCurrent,
-         type="p",
+         type="l",
          xlab="elapsed time (s)",
          ylab="discharge current (mA)",
          main="current discharge over time")
+
+    ## Voltage change Graph
+    plot(battdata$ElapsedTime, battdata$Voltage,
+         type="l",
+         xlab="elapsed time (s)",
+         ylab="battery voltage (V)",
+         main="battery voltage over time")
+
+    ## Voltage change Graph
+    plot(battdata$ElapsedTime, battdata$MilliPower,
+         type="l",
+         xlab="elapsed time (s)",
+         ylab="power consumption (mW)",
+         main="power consumption over time")
+
+    ## Battery discharge Graph
+    plot(battdata$ElapsedTime, battdata$Charge,
+         type="l",
+         xlab="elapsed time (s)",
+         ylab="battery charge (%)",
+         main="battery charge over time")
+
+
 } else {
     print("How to use: ./parse_battmonlog.R battery.log")
 }
