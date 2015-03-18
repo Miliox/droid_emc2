@@ -9,6 +9,7 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".MainActivity">
 
+    <!-- Url -->
     <TextView
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
@@ -22,6 +23,21 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" />
 
+    <!-- Port -->
+    <TextView
+        android:labelFor="@+id/input_port"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/label_insert_port"/>
+
+    <EditText
+        android:id="@+id/input_port"
+        android:hint="1234"
+        android:inputType="number"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" />
+
+    <!-- Stress Test Selector -->
     <TextView
         android:labelFor="@+id/input_test_mode"
         android:layout_width="fill_parent"
@@ -39,6 +55,7 @@
         android:layout_height="wrap_content"
         android:text="@string/label_test_duration"/>
 
+    <!-- Test Duration -->
     <LinearLayout
         android:gravity="center"
         android:orientation="horizontal"
@@ -82,13 +99,13 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content">
         <TextView
-            android:labelFor="@+id/input_number_test_repetions"
+            android:labelFor="@+id/input_number_test_tries"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="@string/label_number_test_repetions"/>
+            android:text="@string/label_number_test_tries"/>
 
         <EditText
-            android:id="@+id/input_number_test_repetions"
+            android:id="@+id/input_number_test_tries"
             android:inputType="number"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content" />

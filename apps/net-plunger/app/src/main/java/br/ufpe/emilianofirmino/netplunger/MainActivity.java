@@ -13,8 +13,11 @@ import android.widget.NumberPicker;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import java.io.IOException;
+
 public class MainActivity extends ActionBarActivity {
     private EditText urlField;
+    private EditText portField;
     private Spinner  modeField;
 
     private NumberPicker hourPicker;
@@ -25,6 +28,8 @@ public class MainActivity extends ActionBarActivity {
     private EditText repeatNumber;
     private EditText packetSepTime;
     private Button   runButton;
+
+    private PlungeClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,14 +42,14 @@ public class MainActivity extends ActionBarActivity {
         ArrayAdapter<CharSequence> testOptions =
                 ArrayAdapter.createFromResource(
                         this, R.array.stress_mode_array, android.R.layout.simple_spinner_item);
-
         this.urlField      = (EditText)     findViewById(R.id.input_url);
+        this.portField     = (EditText)     findViewById(R.id.input_port);
         this.modeField     = (Spinner)      findViewById(R.id.input_test_mode);
         this.hourPicker    = (NumberPicker) findViewById(R.id.input_duration_hour);
         this.minutePicker  = (NumberPicker) findViewById(R.id.input_duration_minute);
         this.secondPicker  = (NumberPicker) findViewById(R.id.input_duration_second);
         this.enableRepeat  = (CheckBox)     findViewById(R.id.checkbox_repeat_test);
-        this.repeatNumber  = (EditText)     findViewById(R.id.input_number_test_repetions);
+        this.repeatNumber  = (EditText)     findViewById(R.id.input_number_test_tries);
         this.packetSepTime = (EditText)     findViewById(R.id.input_delay_between_tests);
         this.runButton     = (Button)       findViewById(R.id.button_run);
 
@@ -76,6 +81,9 @@ public class MainActivity extends ActionBarActivity {
                     String url = (urlField.length() > 0)
                             ? urlField.getText().toString() : "127.0.0.1";
 
+                    int port = (portField.length() > 0)
+                            ? Integer.parseInt(portField.getText().toString()) : 1234;
+
                     long duration = (60 * 60) * hourPicker.getValue();
                     duration += 60 * minutePicker.getValue();
                     duration += secondPicker.getValue();
@@ -98,6 +106,15 @@ public class MainActivity extends ActionBarActivity {
                     }
                     setUiComponentsEnabled(false);
                     runButton.setText(end);
+
+                    client = new PlungeClient(
+                        PlungeClient.StressMode.HALF_DUPLEX,
+                            url, port, 1024, 100);
+                    try {
+                        client.start();
+                    } catch (IOException e) {
+                        Toast.makeText(getApplicationContext(), "Crashed", Toast.LENGTH_LONG).show();
+                    }
 
                     Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
                 }
