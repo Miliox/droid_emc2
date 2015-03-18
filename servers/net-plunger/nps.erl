@@ -55,7 +55,7 @@ cmd_loop(ListenSocket) ->
 conn_loop(Socket) ->
     case gen_tcp:recv(Socket, 0) of
         {ok, Data} ->
-            io:format("Received: ~w~n", [Data]),
+            io:format("Received Packet of ~w~n", [length(Data)]),
             gen_tcp:send(Socket, Data),
             conn_loop(Socket);
         Error ->

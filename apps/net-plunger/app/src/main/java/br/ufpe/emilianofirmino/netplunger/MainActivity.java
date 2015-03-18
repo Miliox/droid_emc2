@@ -78,10 +78,10 @@ public class MainActivity extends ActionBarActivity {
                 String end = getString(R.string.stop_test);
 
                 if (run.equals(runButton.getText())) {
-                    String url = (urlField.length() > 0)
+                    final String url = (urlField.length() > 0)
                             ? urlField.getText().toString() : "127.0.0.1";
 
-                    int port = (portField.length() > 0)
+                    final int port = (portField.length() > 0)
                             ? Integer.parseInt(portField.getText().toString()) : 1234;
 
                     long duration = (60 * 60) * hourPicker.getValue();
@@ -107,20 +107,44 @@ public class MainActivity extends ActionBarActivity {
                     setUiComponentsEnabled(false);
                     runButton.setText(end);
 
-                    client = new PlungeClient(
-                        PlungeClient.StressMode.HALF_DUPLEX,
-                            url, port, 1024, 100);
-                    try {
-                        client.start();
-                    } catch (IOException e) {
-                        Toast.makeText(getApplicationContext(), "Crashed", Toast.LENGTH_LONG).show();
-                    }
-
                     Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
+
+                    Runnable launchClient = new Runnable() {
+                        @Override
+                        public void run() {
+                            client = new PlungeClient(
+                                PlungeClient.StressMode.HALF_DUPLEX,
+                                url, port, 1024, 100);
+
+                            try {
+                                client.start();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                final String msg = "Crashed: " + e.getMessage();
+                                runOnUiThread(
+                                    new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            Toast.makeText(
+                                                getApplicationContext(),
+                                                msg,
+                                                Toast.LENGTH_LONG).show();
+                                        }
+                                    }
+                                );
+                            }
+                        }
+                    };
+
+                    new Thread(launchClient).start();
                 }
                 else if (end.equals(runButton.getText())) {
                     setUiComponentsEnabled(true);
                     runButton.setText(run);
+                    if (client != null)
+                    {
+                        client.abort();
+                    }
                 }
             }
         });
