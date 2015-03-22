@@ -22,6 +22,7 @@ public class MainActivity extends ActionBarActivity {
 
     private final int HOUR_TO_SECOND = 3600;
     private final int MINUTE_TO_SECOND = 60;
+    private final int SECOND_TO_MILLI  = 1000;
 
     private final int LAST_HOUR   = 23;
     private final int LAST_MINUTE = 59;
@@ -42,6 +43,7 @@ public class MainActivity extends ActionBarActivity {
     private Button   runButton;
 
     private PlungeClient client;
+    private Thread launcher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -128,13 +130,14 @@ public class MainActivity extends ActionBarActivity {
                 runButton.setText(end);
 
                 Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
-                new Thread(new ClientLauncher(url, port, packetSize, duration)).start();
+                launcher = new Thread(new ClientLauncher(url, port, packetSize, duration));
+                launcher.start();
             }
             else if (end.equals(runButton.getText())) {
-                setUiComponentsEnabled(true);
-                runButton.setText(run);
-                if (client != null) {
-                    client.abort();
+                if (launcher != null) {
+                    synchronized (launcher) {
+                        launcher.notify();
+                    }
                 }
             }
             }
@@ -144,6 +147,8 @@ public class MainActivity extends ActionBarActivity {
     private void setUiComponentsEnabled(boolean enabled) {
         View views[] = {
             urlInput,
+            portInput,
+            packetSizeInput,
             transferOption,
             hourSelector,
             minuteSelector,
@@ -198,6 +203,32 @@ public class MainActivity extends ActionBarActivity {
                     }
                 }
             );
+
+            synchronized (launcher) {
+                try {
+                    launcher.wait(duration * SECOND_TO_MILLI);
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                    return;
+                }
+            }
+
+            if (client != null) {
+                client.abort();
+                runOnUiThread(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            setUiComponentsEnabled(true);
+                            runButton.setText("Run");
+                            String message = "Finished";
+                            Toast.makeText(
+                                getApplicationContext(), message, Toast.LENGTH_LONG).show();
+                        }
+                    }
+                );
+            }
+            launcher = null;
         }
     };
 }
