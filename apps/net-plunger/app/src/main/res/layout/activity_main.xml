@@ -1,13 +1,19 @@
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
     android:orientation="vertical"
     android:screenOrientation="portrait"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin" tools:context=".MainActivity">
+    tools:context=".MainActivity">
 
     <!-- Url -->
     <TextView
@@ -37,25 +43,27 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" />
 
-    <!-- Stress Test Selector -->
+    <!-- Packet Size -->
     <TextView
-        android:labelFor="@+id/input_test_mode"
+        android:labelFor="@+id/input_packet_size"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:text="@string/label_select_mode"/>
+        android:text="@string/label_insert_packet_size"/>
 
-    <Spinner
-        android:id="@+id/input_test_mode"
+    <EditText
+        android:id="@+id/input_packet_size"
+        android:hint="1024"
+        android:inputType="number"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" />
 
+    <!-- Test Duration -->
     <TextView
         android:labelFor="@+id/input_test_duration"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="@string/label_test_duration"/>
 
-    <!-- Test Duration -->
     <LinearLayout
         android:gravity="center"
         android:orientation="horizontal"
@@ -86,46 +94,64 @@
             android:layout_height="wrap_content"/>
     </LinearLayout>
 
+    <!-- Stress Test Selector -->
+    <TextView
+        android:labelFor="@+id/input_test_mode"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/label_select_mode"/>
+
+    <Spinner
+        android:id="@+id/input_test_mode"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" />
+
+    <!-- Replay Test -->
     <CheckBox
-        android:id="@+id/checkbox_repeat_test"
-        android:text="@string/checkbox_repeat_test"
+        android:id="@+id/checkbox_replay_test"
+        android:text="@string/checkbox_replay_test"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"/>
 
     <LinearLayout
-        android:id="@+id/repeat_field"
+        android:id="@+id/replay_field"
         android:visibility="gone"
         android:orientation="vertical"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content">
+        <!-- Number of Test Repetitions -->
         <TextView
-            android:labelFor="@+id/input_number_test_tries"
+            android:labelFor="@+id/input_replay_tries"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text="@string/label_number_test_tries"/>
 
         <EditText
-            android:id="@+id/input_number_test_tries"
+            android:id="@+id/input_replay_tries"
             android:inputType="number"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content" />
 
+        <!-- Delay Between Tests -->
         <TextView
-            android:labelFor="@+id/input_delay_between_tests"
+            android:labelFor="@+id/input_replay_delay"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text="@string/label_delay_between_tests"/>
 
         <EditText
-            android:id="@+id/input_delay_between_tests"
+            android:id="@+id/input_replay_delay"
             android:inputType="number"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content" />
     </LinearLayout>
 
+    <!-- Execute Button -->
     <Button
         android:id="@+id/button_run"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="@string/execute_test" />
+
 </LinearLayout>
+</ScrollView>

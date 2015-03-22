@@ -62,7 +62,6 @@ public class PlungeClient {
                 readerLoop();
             }
         });
-
         this.writer = new Thread(new Runnable() {
             @Override
             public void run() {
