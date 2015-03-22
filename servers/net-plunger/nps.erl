@@ -17,18 +17,18 @@
 
 start() ->
     {ok, ListenSocket} = gen_tcp:listen(?PORT, ?TCP_OPT),
-    Pid = spawn(fun() -> rcv_loop(ListenSocket) end),
+    Pid = spawn(fun() -> accept_loop(ListenSocket) end),
 
     {server, Pid}.
 
 stop({server, Pid}) ->
     Pid ! stop.
 
-rcv_loop(ListenSocket) ->
+accept_loop(ListenSocket) ->
     case gen_tcp:accept(ListenSocket, 500) of
         {ok, Socket} ->
             io:format("New connection ~w~n", [Socket]),
-            Pid = spawn(fun() -> conn_loop(Socket) end),
+            Pid = spawn(fun() -> init_loop(Socket) end),
 
             io:format("Spawn handler process ~w~n", [Pid]),
             cmd_loop(ListenSocket);
@@ -44,20 +44,46 @@ rcv_loop(ListenSocket) ->
 cmd_loop(ListenSocket) ->
     receive
         stop ->
-            io:format("Stopping Server~n"),
             ExitStatus = gen_tcp:close(ListenSocket),
-            io:format("Server stopped: ~w~n", [ExitStatus])
-
+            io:format("Stopping Server ~w~n", [ExitStatus])
     after 0 ->
-            rcv_loop(ListenSocket)
+            accept_loop(ListenSocket)
     end.
+
+init_loop(ListenSocket) ->
+    put(begin_timestamp, now()),
+    put(recv, 0),
+    put(sent, 0),
+    conn_loop(ListenSocket).
 
 conn_loop(Socket) ->
     case gen_tcp:recv(Socket, 0) of
         {ok, Data} ->
-            io:format("Received Packet of ~w~n", [length(Data)]),
+            L = length(Data),
+
+            put(recv, get(recv) + L),
+            io:format("Received Packet of ~w bytes~n", [L]),
+
             gen_tcp:send(Socket, Data),
+            put(sent, get(sent) + L),
+
             conn_loop(Socket);
+
         Error ->
-            io:format("Connection Closed: ~w~n", [Error])
+            io:format("Connection Closed~n"),
+            finish_loop(Error)
     end.
+
+finish_loop(Reason) ->
+    {BegMegaSec, BegSec, _} = get(begin_timestamp),
+    {EndMegaSec, EndSec, _} = now(),
+
+    TotalSec = (EndMegaSec - BegMegaSec) * (1000 * 1000) + (EndSec - BegSec),
+
+    io:format("Finished connection because ~w~n", [Reason]),
+    io:format("Elapsed: ~wsec, or ~wmin, ~whr~n",
+        [TotalSec, TotalSec/60, TotalSec/3600]),
+    io:format("Recv: ~w B, or ~w KB, or ~w MB~n",
+        [get(recv), get(recv)/1024, get(recv)/(1024*1024)]),
+    io:format("Sent: ~w B, or ~w KB, or ~w MB~n",
+        [get(sent), get(sent)/1024, get(sent)/(1024*1024)]).
