@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">BtToolKit</string>
+
+    <string name="btn_bt_get_adapter">Request Bluetooth Adapter</string>
+    <string name="btn_bt_enable">Enable Bluetooth</string>
+    <string name="btn_start_device_discovery">Start Device Discovery</string>
+    <string name="btn_stop_device_discovery">Stop Device Discovery</string>
+    <string name="btn_turn_visible">Turn Device Visible for 30s</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+</resources>
