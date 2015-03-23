@@ -2,7 +2,6 @@ package br.ufpe.emilianofirmino.bttoolkit;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothHeadset;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -22,22 +21,31 @@ public class MainActivity extends ActionBarActivity {
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            final Button btnStartDiscovery = (Button) findViewById(R.id.btn_start_device_discovery);
-            final Button btnStopDiscovery  = (Button) findViewById(R.id.btn_stop_device_discovery);
+            Button btnStartDiscovery = (Button) findViewById(R.id.btn_start_device_discovery);
+            Button btnStopDiscovery  = (Button) findViewById(R.id.btn_stop_device_discovery);
+            Button btnTurnVisible    = (Button) findViewById(R.id.btn_turn_visible);
 
             if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(intent.getAction())) {
                 btnStartDiscovery.setEnabled(false);
                 btnStopDiscovery.setEnabled(true);
-            }
 
-            if (BluetoothDevice.ACTION_FOUND.equals(intent.getAction())) {
+                toastMessage("start device discovery ");
+            } else if (BluetoothDevice.ACTION_FOUND.equals(intent.getAction())) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                Toast.makeText(context, "Found " + device.getAddress(), Toast.LENGTH_SHORT).show();
-            }
 
-            if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(intent.getAction())) {
+                toastMessage("found " + device.getAddress());
+            } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(intent.getAction())) {
                 btnStartDiscovery.setEnabled(true);
                 btnStopDiscovery.setEnabled(false);
+
+                toastMessage("finished device discovery ");
+            } else if (BluetoothAdapter.ACTION_SCAN_MODE_CHANGED.equals(intent.getAction())) {
+                int scanMode = intent.getIntExtra(BluetoothAdapter.EXTRA_SCAN_MODE, 0);
+                boolean isVisible =
+                    scanMode == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE;
+                btnTurnVisible.setEnabled(!isVisible);
+
+                toastMessage(isVisible ? "temporary visible" : "finished visibility window");
             }
         }
     };
@@ -51,6 +59,7 @@ public class MainActivity extends ActionBarActivity {
 
         registerReceiver(receiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_STARTED));
         registerReceiver(receiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED));
+        registerReceiver(receiver, new IntentFilter(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED));
         registerReceiver(receiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
 
         final Button btnGetBluetoothAdapter = (Button) findViewById(R.id.btn_bt_get_adapter);
@@ -68,12 +77,12 @@ public class MainActivity extends ActionBarActivity {
 
                 if (btAdapter != null) {
                     v.setEnabled(false);
-                    if (!btAdapter.isEnabled()) {
-                        btnEnableBluetooth.setEnabled(true);
-                    } else {
-                        btnStartDiscovery.setEnabled(true);
-                        btnTurnVisible.setEnabled(true);
-                    }
+                    btnStopDiscovery.setEnabled(false);
+
+                    boolean isBtEnabled = btAdapter.isEnabled();
+                    btnEnableBluetooth.setEnabled(!isBtEnabled);
+                    btnStartDiscovery.setEnabled(isBtEnabled);
+                    btnTurnVisible.setEnabled(isBtEnabled);
                 }
             }
         });
@@ -91,7 +100,6 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onClick(View v) {
                 btAdapter.startDiscovery();
-                btnStopDiscovery.setEnabled(true);
                 v.setEnabled(false);
             }
         });
@@ -117,14 +125,16 @@ public class MainActivity extends ActionBarActivity {
 
     @Override
     protected void onActivityResult (int requestCode, int resultCode, Intent data) {
-        final Button btnFindDevices = (Button) findViewById(R.id.btn_stop_device_discovery);
-        final Button btnTurnVisible = (Button) findViewById(R.id.btn_turn_visible);
+        Button btnEnableBluetooth = (Button) findViewById(R.id.btn_bt_enable);
+        Button btnFindDevices = (Button) findViewById(R.id.btn_start_device_discovery);
+        Button btnTurnVisible = (Button) findViewById(R.id.btn_turn_visible);
 
         if (requestCode == REQUEST_BLUETOOTH_ENABLE) {
             if (resultCode == RESULT_OK) {
-
                 btnFindDevices.setEnabled(true);
                 btnTurnVisible.setEnabled(true);
+            } else {
+                btnEnableBluetooth.setEnabled(true);
             }
         }
     }
@@ -155,5 +165,9 @@ public class MainActivity extends ActionBarActivity {
     protected void onDestroy() {
         super.onDestroy();
         unregisterReceiver(receiver);
+    }
+
+    private void toastMessage(String message) {
+        Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
     }
 }
