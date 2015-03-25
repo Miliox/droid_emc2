@@ -15,83 +15,55 @@
     android:screenOrientation="portrait"
     tools:context=".MainActivity">
 
-    <!-- Url -->
-    <TextView
+    <LinearLayout
+        android:gravity="center"
+        android:orientation="horizontal"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:labelFor="@+id/input_url"
-        android:text="@string/label_insert_url"/>
+        android:layout_height="wrap_content">
+        <!-- Url -->
+        <EditText
+            android:id="@+id/input_url"
+            android:hint="@string/hint_insert_url"
+            android:inputType="textUri"
+            android:layout_weight="1"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" />
 
-    <EditText
-        android:id="@+id/input_url"
-        android:hint="@string/hint_insert_url"
-        android:inputType="textUri"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" />
+        <!-- Separator -->
+        <TextView
+            android:text=":"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
 
-    <!-- Port -->
-    <TextView
-        android:labelFor="@+id/input_port"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/label_insert_port"/>
-
-    <EditText
-        android:id="@+id/input_port"
-        android:hint="1234"
-        android:inputType="number"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" />
-
-    <!-- Packet Size -->
-    <TextView
-        android:labelFor="@+id/input_packet_size"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/label_insert_packet_size"/>
-
-    <EditText
-        android:id="@+id/input_packet_size"
-        android:hint="1024"
-        android:inputType="number"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" />
-
-    <!-- Test Duration -->
-    <TextView
-        android:labelFor="@+id/input_test_duration"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/label_test_duration"/>
+        <!-- Port -->
+        <EditText
+            android:id="@+id/input_port"
+            android:hint="1234"
+            android:layout_weight="3"
+            android:inputType="number"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
 
     <LinearLayout
         android:gravity="center"
         android:orientation="horizontal"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content">
-        <!-- Hour -->
-        <NumberPicker
-            android:id="@+id/input_duration_hour"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/time_separator"/>
-        <!-- Minute -->
-        <NumberPicker
-            android:id="@+id/input_duration_minute"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/time_separator"/>
-        <!-- Second -->
-        <NumberPicker
-            android:id="@+id/input_duration_second"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+        <!-- Packet Size -->
+        <EditText
+            android:id="@+id/input_packet_size"
+            android:hint="1024"
+            android:inputType="number"
+            android:layout_weight="1"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" />
+
+        <Spinner
+            android:id="@+id/input_transfer_size"
+            android:layout_weight="4"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" />
     </LinearLayout>
 
     <!-- Stress Test Selector -->
@@ -105,46 +77,6 @@
         android:id="@+id/input_test_mode"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" />
-
-    <!-- Replay Test -->
-    <CheckBox
-        android:id="@+id/checkbox_replay_test"
-        android:text="@string/checkbox_replay_test"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"/>
-
-    <LinearLayout
-        android:id="@+id/replay_field"
-        android:visibility="gone"
-        android:orientation="vertical"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content">
-        <!-- Number of Test Repetitions -->
-        <TextView
-            android:labelFor="@+id/input_replay_tries"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/label_number_test_tries"/>
-
-        <EditText
-            android:id="@+id/input_replay_tries"
-            android:inputType="number"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content" />
-
-        <!-- Delay Between Tests -->
-        <TextView
-            android:labelFor="@+id/input_replay_delay"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/label_delay_between_tests"/>
-
-        <EditText
-            android:id="@+id/input_replay_delay"
-            android:inputType="number"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
 
     <!-- Execute Button -->
     <Button

@@ -5,11 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.NumberPicker;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -20,26 +16,12 @@ public class MainActivity extends ActionBarActivity {
     private final int    DEFAULT_PORT = 1234;
     private final int    DEFAULT_PACKET_SIZE = 1024;
 
-    private final int HOUR_TO_SECOND = 3600;
-    private final int MINUTE_TO_SECOND = 60;
-    private final int SECOND_TO_MILLI  = 1000;
-
-    private final int LAST_HOUR   = 23;
-    private final int LAST_MINUTE = 59;
-    private final int LAST_SECOND = 59;
-
     private EditText urlInput;
     private EditText portInput;
     private EditText packetSizeInput;
-    private Spinner  transferOption;
+    private Spinner  transferModeOption;
+    private Spinner  transferSizeOption;
 
-    private NumberPicker hourSelector;
-    private NumberPicker minuteSelector;
-    private NumberPicker secondSelector;
-
-    private CheckBox repeatCheckBox;
-    private EditText repeatNumber;
-    private EditText packetSepTime;
     private Button   runButton;
 
     private PlungeClient client;
@@ -56,13 +38,8 @@ public class MainActivity extends ActionBarActivity {
         this.urlInput        = (EditText)     findViewById(R.id.input_url);
         this.portInput       = (EditText)     findViewById(R.id.input_port);
         this.packetSizeInput = (EditText)     findViewById(R.id.input_packet_size);
-        this.transferOption  = (Spinner)      findViewById(R.id.input_test_mode);
-        this.hourSelector    = (NumberPicker) findViewById(R.id.input_duration_hour);
-        this.minuteSelector  = (NumberPicker) findViewById(R.id.input_duration_minute);
-        this.secondSelector  = (NumberPicker) findViewById(R.id.input_duration_second);
-        this.repeatCheckBox  = (CheckBox)     findViewById(R.id.checkbox_replay_test);
-        this.repeatNumber    = (EditText)     findViewById(R.id.input_replay_tries);
-        this.packetSepTime   = (EditText)     findViewById(R.id.input_replay_delay);
+        this.transferModeOption = (Spinner)   findViewById(R.id.input_test_mode);
+        this.transferSizeOption = (Spinner)   findViewById(R.id.input_transfer_size);
         this.runButton       = (Button)       findViewById(R.id.button_run);
 
         this.urlInput.setHint(DEFAULT_URL);
@@ -71,19 +48,10 @@ public class MainActivity extends ActionBarActivity {
 
         ArrayAdapter<CharSequence> testOptions = ArrayAdapter.createFromResource(
             this, R.array.stress_mode_array, android.R.layout.simple_spinner_item);
-        this.transferOption.setAdapter(testOptions);
+        ArrayAdapter<CharSequence> sizeOptions = ArrayAdapter.createFromResource(
+                this, R.array.data_unit_array, android.R.layout.simple_spinner_item);
 
-        this.hourSelector.setMaxValue(LAST_HOUR);
-        this.minuteSelector.setMaxValue(LAST_MINUTE);
-        this.secondSelector.setMaxValue(LAST_SECOND);
-
-        this.repeatCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                LinearLayout l = (LinearLayout) findViewById(R.id.replay_field);
-                l.setVisibility(isChecked ? View.VISIBLE : View.GONE);
-            }
-        });
+        this.transferModeOption.setAdapter(testOptions);
 
         this.runButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -100,37 +68,29 @@ public class MainActivity extends ActionBarActivity {
                     ? Integer.parseInt(portInput.getText().toString())
                     : DEFAULT_PORT;
 
-                final int packetSize = (packetSizeInput.length() > 0)
+                int totalDataToTransfer = (packetSizeInput.length() > 0)
                     ? Integer.parseInt(packetSizeInput.getText().toString())
                     : DEFAULT_PACKET_SIZE;
 
-                long duration = hourSelector.getValue() * HOUR_TO_SECOND;
-                duration += minuteSelector.getValue() * MINUTE_TO_SECOND;
-                duration += secondSelector.getValue();
+                int dataSizeOption = transferSizeOption.getSelectedItemPosition();
 
-                int connType = transferOption.getSelectedItemPosition();
+                if (dataSizeOption == 1) {
+                    totalDataToTransfer *= 1024;
+                }
+                else if (dataSizeOption == 2) {
+                    totalDataToTransfer *= 1024 * 1024;
+                }
 
-                int repeat = (repeatCheckBox.isChecked() && repeatNumber.length() > 0)
-                    ? Integer.parseInt(repeatNumber.getText().toString())
-                    : 0;
-
-                int delay = (repeatCheckBox.isChecked() && packetSepTime.length() > 0)
-                    ? Integer.parseInt(packetSepTime.getText().toString())
-                    : 0;
+                int connType = transferModeOption.getSelectedItemPosition();
 
                 String msg = "url:" + url;
-                msg += ",dur:" + duration;
                 msg += ",conn:" + connType;
 
-                if (repeatCheckBox.isChecked()) {
-                    msg += ",r:" + repeat;
-                    msg += ",d:" + delay;
-                }
                 setUiComponentsEnabled(false);
                 runButton.setText(end);
 
                 Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
-                launcher = new Thread(new ClientLauncher(url, port, packetSize, duration));
+                launcher = new Thread(new ClientLauncher(url, port, totalDataToTransfer, 60));
                 launcher.start();
             }
             else if (end.equals(runButton.getText())) {
@@ -149,13 +109,8 @@ public class MainActivity extends ActionBarActivity {
             urlInput,
             portInput,
             packetSizeInput,
-            transferOption,
-            hourSelector,
-            minuteSelector,
-            secondSelector,
-            repeatCheckBox,
-            repeatNumber,
-            packetSepTime
+            transferModeOption,
+            transferSizeOption
         };
 
         for (View v : views) {
@@ -206,7 +161,7 @@ public class MainActivity extends ActionBarActivity {
 
             synchronized (launcher) {
                 try {
-                    launcher.wait(duration * SECOND_TO_MILLI);
+                    launcher.wait(duration * 1000);
                 } catch (InterruptedException e1) {
                     e1.printStackTrace();
                     return;
