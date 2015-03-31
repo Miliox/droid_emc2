@@ -1,121 +1,204 @@
 package br.ufpe.emilianofirmino.netplunger;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Random;
+import java.util.concurrent.Semaphore;
 
 public class PlungeClient {
     final private StressMode mode;
     final private String     url;
     final private int        port;
-    final private int        payloadSize;
+    final private int        transferByteSize;
     final private long       packetDueTime;
 
-    private byte[] payload;
+    private PlungeClientObserver observer;
 
-    private Socket conn;
-    private InputStream in;
-    private OutputStream out;
-    private Thread       reader;
-    private Thread       writer;
+    private Thread controller;
+    private Thread reader;
+    private Thread writer;
 
     public PlungeClient(
             StressMode stressMode,
             String     serverUrl,
             int        serverPort,
-            int        payloadSizeInBytes,
+            int        transferByteSize,
             long       packetDueTimeInMilliseconds) {
 
         this.mode = stressMode;
         this.url  = serverUrl;
         this.port = serverPort;
 
-        this.payloadSize   = payloadSizeInBytes;
-        this.packetDueTime = packetDueTimeInMilliseconds;
+        this.transferByteSize = transferByteSize;
+        this.packetDueTime    = packetDueTimeInMilliseconds;
+    }
 
-        this.payload = new byte[this.payloadSize];
-
-        Random r = new Random();
-        r.nextBytes(this.payload);
+    public void setObserver(PlungeClientObserver observer) {
+        this.observer = observer;
     }
 
     public void start() throws IOException, IllegalStateException {
-        if (this.conn != null) {
+        if (this.controller != null) {
             throw new IllegalStateException("Session in progress, abort or try later");
         }
+        connectAndTransferAsync();
+    }
 
-        try {
-            this.conn = new Socket(url, port);
-        } catch (IOException e) {
-            this.conn = null;
-            throw e;
-        }
-
-        this.in = conn.getInputStream();
-        this.out = conn.getOutputStream();
-
-        this.reader = new Thread(new Runnable() {
+    private void connectAndTransferAsync() throws IOException {
+        this.controller = new Thread(new Runnable() {
             @Override
             public void run() {
-                readerLoop();
+                controllerLoop();
             }
         });
-        this.writer = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                writerLoop();
-            }
-        });
-
-        this.reader.start();
-        this.writer.start();
+        this.controller.start();
     }
 
     public void abort() {
-        try {
-            this.in.close();
-            this.out.close();
-            this.conn.close();
-            this.conn = null;
-        } catch (Exception e) {
-
-        }
     }
 
-    private void readerLoop() {
-        if (mode == StressMode.SIMPLEX_TX) {
-            return;
-        }
+    private void controllerLoop() {
+        Semaphore semaphore = new Semaphore(2);
 
-        byte[] buffer = new byte[this.payloadSize];
-        for(;;) {
+        for (int i = 0; i < 10; i++) {
+            Log.d("PlungeClient", "start iteration " + i);
+            Socket conn;
+            InputStream in;
+            OutputStream out;
+
             try {
-                in.read(buffer);
+                conn = new Socket(url, port);
+                in = conn.getInputStream();
+                out = conn.getOutputStream();
             } catch (IOException e) {
                 return;
             }
+
+            this.reader = new ReaderThread(semaphore, in, this.transferByteSize);
+            this.writer = new WriterThread(semaphore, out, this.transferByteSize);
+
+            try {
+                semaphore.acquire(2);
+            } catch (Exception e) { }
+
+            this.reader.start();
+            this.writer.start();
+
+            Log.d("PlungeClient", "wait transfer finish");
+            try {
+                semaphore.acquire();
+                semaphore.acquire();
+                semaphore.release(2);
+            } catch (Exception e) { }
+            Log.d("PlungeClient", "transfer finished");
+
+            Log.d("PlungeClient", "close connection and sleep");
+            try {
+                in.close();
+                out.close();
+                conn.close();
+                Thread.sleep(this.packetDueTime);
+            } catch (Exception e) { }
+            Log.d("PlungeClient", "finish iteration");
+        }
+
+        Log.d("PlungeClient", "notify observer");
+        if (observer != null) {
+            observer.connectionFinished(this);
+        }
+        this.controller = null;
+    }
+
+    private class ReaderThread extends Thread {
+        private Semaphore   semaphore;
+        private InputStream input;
+        private int         transferBytes;
+
+        public ReaderThread(Semaphore semaphore, InputStream input, int transferBytes) {
+            this.input = input;
+            this.semaphore = semaphore;
+            this.transferBytes = transferBytes;
+        }
+
+        @Override
+        public void run() {
+            Log.d("PlungeClient", "reader thread start transfer " + transferBytes);
+            if (mode == StressMode.SIMPLEX_TX) {
+                Log.d("PlungeClient", "reader thread finish because simplex_tx");
+                this.semaphore.release();
+                return;
+            }
+
+            byte[] payload = new byte[1024];
+
+            int count = 0;
+            while (count < this.transferBytes) {
+                try {
+                    count += this.input.read(payload);
+                } catch (Exception e) {
+                    Log.d("PlungeClient", "reader thread interrupted by exception");
+                    break;
+                }
+            }
+
+            try {
+                semaphore.release();
+            } catch (Exception e) { }
+            Log.d("PlungeClient", "reader thread finish");
         }
     }
 
-    private void writerLoop() {
-        if (mode == StressMode.SIMPLEX_RX) {
-            return;
+    private class WriterThread extends Thread {
+        private OutputStream output;
+        private Semaphore    semaphore;
+        private int          transferBytes;
+
+        public WriterThread(Semaphore semaphore, OutputStream output, int transferBytes) {
+            this.output = output;
+            this.semaphore = semaphore;
+            this.transferBytes = transferBytes;
         }
 
-        for(;;) {
-            try {
-                out.write(this.payload);
-                out.flush();
-                Thread.sleep(this.packetDueTime);
-            } catch (Exception e) {
+        @Override
+        public void run() {
+            Log.d("PlungeClient", "writer thread start transfer " + transferBytes);
+            if (mode == StressMode.SIMPLEX_RX) {
+                Log.d("PlungeClient", "writer thread finish because simplex_rx");
+                this.semaphore.release();
                 return;
             }
+
+            byte[] payload = new byte[1024];
+            Random r = new Random();
+            r.nextBytes(payload);
+
+            int n = this.transferBytes / 1024;
+            for(int i = 0; i < n; i++) {
+                try {
+                    this.output.write(payload);
+                    this.output.flush();
+                } catch (Exception e) {
+                    Log.d("PlungeClient", "writer thread interrupted by exception");
+                    break;
+                }
+            }
+
+            try {
+                this.semaphore.release();
+            } catch (Exception e) { }
+            Log.d("PlungeClient", "writer thread finished");
         }
     }
 
     public enum StressMode {
         SIMPLEX_RX, SIMPLEX_TX, HALF_DUPLEX, FULL_DUPLEX
+    }
+
+    public interface PlungeClientObserver {
+        public void connectionFinished(PlungeClient source);
     }
 }

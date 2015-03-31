@@ -11,8 +11,8 @@ import android.widget.Toast;
 
 import java.io.IOException;
 
-public class MainActivity extends ActionBarActivity {
-    private final String DEFAULT_URL  = "127.0.0.1";
+public class MainActivity extends ActionBarActivity implements PlungeClient.PlungeClientObserver {
+    private final String DEFAULT_URL  = "192.168.25.23";
     private final int    DEFAULT_PORT = 1234;
     private final int    DEFAULT_PACKET_SIZE = 1024;
 
@@ -35,12 +35,12 @@ public class MainActivity extends ActionBarActivity {
     }
 
     private void initializeUiComponents() {
-        this.urlInput        = (EditText)     findViewById(R.id.input_url);
-        this.portInput       = (EditText)     findViewById(R.id.input_port);
-        this.packetSizeInput = (EditText)     findViewById(R.id.input_packet_size);
-        this.transferModeOption = (Spinner)   findViewById(R.id.input_test_mode);
-        this.transferSizeOption = (Spinner)   findViewById(R.id.input_transfer_size);
-        this.runButton       = (Button)       findViewById(R.id.button_run);
+        this.urlInput        = (EditText)   findViewById(R.id.input_url);
+        this.portInput       = (EditText)   findViewById(R.id.input_port);
+        this.packetSizeInput = (EditText)   findViewById(R.id.input_packet_size);
+        this.transferModeOption = (Spinner) findViewById(R.id.input_test_mode);
+        this.transferSizeOption = (Spinner) findViewById(R.id.input_transfer_size);
+        this.runButton       = (Button)     findViewById(R.id.button_run);
 
         this.urlInput.setHint(DEFAULT_URL);
         this.portInput.setHint(Integer.toString(DEFAULT_PORT));
@@ -49,9 +49,10 @@ public class MainActivity extends ActionBarActivity {
         ArrayAdapter<CharSequence> testOptions = ArrayAdapter.createFromResource(
             this, R.array.stress_mode_array, android.R.layout.simple_spinner_item);
         ArrayAdapter<CharSequence> sizeOptions = ArrayAdapter.createFromResource(
-                this, R.array.data_unit_array, android.R.layout.simple_spinner_item);
+            this, R.array.data_unit_array, android.R.layout.simple_spinner_item);
 
         this.transferModeOption.setAdapter(testOptions);
+        this.transferSizeOption.setAdapter(sizeOptions);
 
         this.runButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -90,7 +91,7 @@ public class MainActivity extends ActionBarActivity {
                 runButton.setText(end);
 
                 Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
-                launcher = new Thread(new ClientLauncher(url, port, totalDataToTransfer, 60));
+                launcher = new Thread(new ClientLauncher(url, port, totalDataToTransfer, 10 * 1000));
                 launcher.start();
             }
             else if (end.equals(runButton.getText())) {
@@ -118,6 +119,21 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
+    @Override
+    public void connectionFinished(PlungeClient source) {
+        runOnUiThread(
+            new Runnable() {
+                @Override
+                public void run() {
+                    runButton.setText("Run");
+                    setUiComponentsEnabled(true);
+                    String message = "Finished";
+                    Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+                }
+            }
+        );
+    }
+
     private class ClientLauncher implements Runnable {
         private final String url;
         private final int port;
@@ -135,6 +151,7 @@ public class MainActivity extends ActionBarActivity {
         public void run() {
             client = new PlungeClient(
                 PlungeClient.StressMode.FULL_DUPLEX, url, port, packet, duration);
+            client.setObserver(MainActivity.this);
 
             boolean connected = false;
             try {
