@@ -66,6 +66,14 @@
             android:layout_height="wrap_content" />
     </LinearLayout>
 
+    <EditText
+         android:id="@+id/input_intermission"
+         android:hint="@string/hint_insert_intermission"
+         android:inputType="number"
+         android:layout_weight="1"
+         android:layout_width="fill_parent"
+         android:layout_height="wrap_content" />
+
     <!-- Stress Test Selector -->
     <TextView
         android:labelFor="@+id/input_test_mode"

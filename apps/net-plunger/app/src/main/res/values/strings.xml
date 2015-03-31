@@ -4,6 +4,7 @@
     <string name="title_activity_net_stress">Network Stress Test</string>
     <string name="time_separator">:</string>
     <string name="hint_insert_url">127.0.0.1</string>
+    <string name="hint_insert_intermission">1</string>
     <string name="label_insert_url">Server</string>
     <string name="label_select_mode">Mode</string>
     <string name="label_test_duration">Duration</string>

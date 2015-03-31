@@ -19,6 +19,7 @@ public class MainActivity extends ActionBarActivity implements PlungeClient.Plun
     private EditText urlInput;
     private EditText portInput;
     private EditText packetSizeInput;
+    private EditText timeBetweenSession;
     private Spinner  transferModeOption;
     private Spinner  transferSizeOption;
 
@@ -38,6 +39,7 @@ public class MainActivity extends ActionBarActivity implements PlungeClient.Plun
         this.urlInput        = (EditText)   findViewById(R.id.input_url);
         this.portInput       = (EditText)   findViewById(R.id.input_port);
         this.packetSizeInput = (EditText)   findViewById(R.id.input_packet_size);
+        this.timeBetweenSession = (EditText) findViewById(R.id.input_intermission);
         this.transferModeOption = (Spinner) findViewById(R.id.input_test_mode);
         this.transferSizeOption = (Spinner) findViewById(R.id.input_transfer_size);
         this.runButton       = (Button)     findViewById(R.id.button_run);
@@ -69,6 +71,10 @@ public class MainActivity extends ActionBarActivity implements PlungeClient.Plun
                     ? Integer.parseInt(portInput.getText().toString())
                     : DEFAULT_PORT;
 
+                final int dueTimeInSeconds = (timeBetweenSession.length() > 0)
+                    ? Integer.parseInt(timeBetweenSession.getText().toString()) * 1000
+                    : 1000;
+
                 int totalDataToTransfer = (packetSizeInput.length() > 0)
                     ? Integer.parseInt(packetSizeInput.getText().toString())
                     : DEFAULT_PACKET_SIZE;
@@ -91,7 +97,8 @@ public class MainActivity extends ActionBarActivity implements PlungeClient.Plun
                 runButton.setText(end);
 
                 Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
-                launcher = new Thread(new ClientLauncher(url, port, totalDataToTransfer, 10 * 1000));
+                launcher = new Thread(
+                    new ClientLauncher(url, port, totalDataToTransfer, dueTimeInSeconds));
                 launcher.start();
             }
             else if (end.equals(runButton.getText())) {
