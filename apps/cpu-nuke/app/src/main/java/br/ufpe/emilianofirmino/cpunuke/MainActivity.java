@@ -12,8 +12,6 @@ import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import br.ufpe.emilianofirmino.cpunuke.tests.R;
-
 public class MainActivity extends ActionBarActivity {
     final String CPU_ONLINE_FILE[] = new String[] {
         "/sys/devices/system/cpu/cpu0/online",
