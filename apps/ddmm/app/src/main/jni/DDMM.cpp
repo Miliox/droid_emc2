@@ -321,13 +321,17 @@ void* processor_monitor(void* ptr) {
 
 static ProfileContext profile_context;
 static pthread_t battery_monitor_thread = 0;
-static pthread_t network_monitor_thread = 0;
-static pthread_t processor_monitor_thread = 0;
+//static pthread_t network_monitor_thread = 0;
+//static pthread_t processor_monitor_thread = 0;
+
+void* empty_func(void* ptr) {
+
+}
 
 extern "C" JNIEXPORT void JNICALL
 DDMMService(startProfiler)(JNIEnv* env, jobject o) {
-  if (battery_monitor_thread == 0 && network_monitor_thread == 0 &&
-      processor_monitor_thread == 0) {
+  if (battery_monitor_thread == 0 /*&& network_monitor_thread == 0 &&
+      processor_monitor_thread == 0*/) {
     time_t now = time(NULL);
     struct tm today = *localtime(&now);
 
@@ -347,12 +351,9 @@ DDMMService(startProfiler)(JNIEnv* env, jobject o) {
             today.tm_sec);
 
     profile_context.isActive = true;
-    pthread_create(&battery_monitor_thread, NULL, battery_monitor,
-                   &profile_context);
-    pthread_create(&network_monitor_thread, NULL, network_monitor,
-                   &profile_context);
-    pthread_create(&processor_monitor_thread, NULL, processor_monitor,
-                   &profile_context);
+    pthread_create(&battery_monitor_thread, NULL, battery_monitor, &profile_context);
+    //pthread_create(&network_monitor_thread, NULL, network_monitor, &profile_context);
+    //pthread_create(&processor_monitor_thread, NULL, processor_monitor, &profile_context);
   } else {
     jclass klass = env->FindClass("java/lang/IllegalStateException");
     env->ThrowNew(klass, "profile already running");
@@ -361,16 +362,14 @@ DDMMService(startProfiler)(JNIEnv* env, jobject o) {
 
 extern "C" JNIEXPORT void JNICALL
 DDMMService(stopProfiler)(JNIEnv* env, jobject o) {
-  if (battery_monitor_thread != 0 || network_monitor_thread != 0) {
+  if (battery_monitor_thread != 0) {
     profile_context.isActive = false;
 
     pthread_join(battery_monitor_thread, (void**)NULL);
-    pthread_join(network_monitor_thread, (void**)NULL);
-    pthread_join(processor_monitor_thread, (void**)NULL);
+    //pthread_join(network_monitor_thread, (void**)NULL);
+    //pthread_join(processor_monitor_thread, (void**)NULL);
 
     battery_monitor_thread = 0;
-    network_monitor_thread = 0;
-    processor_monitor_thread = 0;
   } else {
     jclass klass = env->FindClass("java/lang/IllegalStateException");
     env->ThrowNew(klass, "profile is not running");
@@ -379,6 +378,5 @@ DDMMService(stopProfiler)(JNIEnv* env, jobject o) {
 
 extern "C" JNIEXPORT bool JNICALL
 DDMMService(isProfilerActive)(JNIEnv* env, jobject o) {
-  return battery_monitor_thread != 0 || network_monitor_thread != 0 ||
-         processor_monitor_thread != 0;
+  return battery_monitor_thread != 0;
 }
