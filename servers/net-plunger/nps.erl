@@ -17,37 +17,37 @@
 
 start() ->
     {ok, ListenSocket} = gen_tcp:listen(?PORT, ?TCP_OPT),
-    Pid = spawn(fun() -> accept_loop(ListenSocket) end),
+    Pid = spawn(fun() -> accept_loop(ListenSocket, 0) end),
 
     {server, Pid}.
 
 stop({server, Pid}) ->
     Pid ! stop.
 
-accept_loop(ListenSocket) ->
+accept_loop(ListenSocket, ConnCount) ->
     case gen_tcp:accept(ListenSocket, 500) of
         {ok, Socket} ->
-            io:format("New connection ~w~n", [Socket]),
+            io:format("New connection ~w (~w) ~n", [Socket, ConnCount + 1]),
             Pid = spawn(fun() -> init_loop(Socket) end),
 
             io:format("Spawn handler process ~w~n", [Pid]),
-            cmd_loop(ListenSocket);
+            cmd_loop(ListenSocket, ConnCount + 1);
 
         {error, timeout} ->
-            cmd_loop(ListenSocket);
+            cmd_loop(ListenSocket, ConnCount);
 
         {error, Reason} ->
             io:format("Server Error ~w~n, Terminate", [Reason]),
             gen_tcp:close(ListenSocket)
     end.
 
-cmd_loop(ListenSocket) ->
+cmd_loop(ListenSocket, ConnCount) ->
     receive
         stop ->
             ExitStatus = gen_tcp:close(ListenSocket),
             io:format("Stopping Server ~w~n", [ExitStatus])
     after 0 ->
-            accept_loop(ListenSocket)
+            accept_loop(ListenSocket, ConnCount)
     end.
 
 init_loop(ListenSocket) ->
